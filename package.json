@@ -1,0 +1,13 @@
+{
+  "name": "instagram-likes-viewer",
+  "version": "0.4.1",
+  "private": true,
+  "description": "Instagramの公式いいね一覧を残す、手動起動のChrome拡張",
+  "scripts": {
+    "test": "node --test test/*.test.cjs",
+    "check": "node --check extension/core.js && node --check extension/content.js && node --check extension/background.js && node scripts/check-package.cjs",
+    "demo": "python3 scripts/serve-demo.py",
+    "package": "python3 scripts/package.py"
+  },
+  "devDependencies": {"jsdom": "26.1.0"}
+}

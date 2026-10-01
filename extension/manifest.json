@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "いいねビュー — Instagram",
+  "version": "0.4.1",
+  "description": "公式いいね一覧を残したまま投稿を大きく開き、閉じる・Escで同じ位置へ戻ります。拡張ボタンで手動起動。",
+  "minimum_chrome_version": "120",
+  "permissions": ["activeTab", "scripting"],
+  "background": {"service_worker": "background.js"},
+  "action": {"default_title": "Instagramの公式いいね一覧で起動／停止"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}
+}

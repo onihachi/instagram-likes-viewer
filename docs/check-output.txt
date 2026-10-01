@@ -1,0 +1,5 @@
+
+> instagram-likes-viewer@0.4.1 check
+> node --check extension/core.js && node --check extension/content.js && node --check extension/background.js && node scripts/check-package.cjs
+
+MV3 manifest / activeTab+scripting only / no persistent host access / no direct networking or persistent storage: PASS

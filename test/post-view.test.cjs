@@ -1,0 +1,34 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {JSDOM}=require('jsdom');
+test('投稿集中表示は元メディアを保持し、リサイズに追従し終了時に表示変更を解除する',()=>{
+ const d=new JSDOM('<main><div><div id="media"><video></video><button>音声</button></div><aside>コメント</aside></div></main>',{url:'https://www.instagram.com/p/example/',runScripts:'outside-only'});
+ const w=d.window,doc=w.document;
+ w.eval(fs.readFileSync('extension/core.js','utf8'));
+ const media=doc.querySelector('video'),root=doc.querySelector('#media');
+ for(const e of [media,root])e.getBoundingClientRect=()=>({width:400,height:600});
+ const view=w.IGLikesPostView(doc);
+ assert.equal(doc.querySelector('[data-iglv-post="media"]'),root);
+ assert.equal(doc.querySelector('video'),media);
+ assert.equal(doc.querySelector('[data-iglv-post-controls]'),null);
+ const initial=doc.querySelector('style').textContent;
+ w.innerHeight=1200;w.dispatchEvent(new w.Event('resize'));
+ assert.notEqual(doc.querySelector('style').textContent,initial);
+ assert.match(doc.querySelector('style').textContent,/top:50%/);
+ view.destroy();assert.equal(doc.querySelector('style'),null);
+ assert.equal(doc.querySelector('[data-iglv-post-controls]'),null);
+ assert.equal(doc.querySelectorAll('[data-iglv-post]').length,0);
+ assert.equal(doc.querySelector('video'),media);w.close();
+});
+test('カルーセルの幅広いスライド列を越え、次へボタンを含む表示枠を拡大する',()=>{
+ const d=new JSDOM('<main><div id="frame"><div id="strip"><div id="slide"><img></div></div><button aria-label="次へ">次へ</button></div></main>',{url:'https://www.instagram.com/p/example/',runScripts:'outside-only'});
+ const w=d.window,doc=w.document;w.eval(fs.readFileSync('extension/core.js','utf8'));
+ for(const sel of ['img','#slide','#frame'])doc.querySelector(sel).getBoundingClientRect=()=>({width:400,height:600});
+ doc.querySelector('#strip').getBoundingClientRect=()=>({width:1600,height:600});
+ const view=w.IGLikesPostView(doc);
+ assert.equal(doc.querySelector('[data-iglv-post="media"]'),doc.querySelector('#frame'));
+ assert.ok(doc.querySelector('[data-iglv-post="media"] button[aria-label="次へ"]'));
+ view.destroy();w.close();
+});

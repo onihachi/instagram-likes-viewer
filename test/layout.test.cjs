@@ -1,0 +1,24 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {JSDOM}=require('jsdom');
+test('一覧レイアウトはカードとイベントを維持し、切替・停止で元の属性に戻す',()=>{
+ const d=new JSDOM(`<main><div><ul><li>menu</li></ul><article><div style="scroll-snap-stop: always;"><div style="margin-bottom:2px"><div><div style="aspect-ratio:1 / 1"><div role="button" aria-label="写真、作成者: @example"><img src="https://example.com/image.jpg"></div></div></div></div></div></article></div></main>`,{url:'https://www.instagram.com/your_activity/interactions/likes/',runScripts:'outside-only'});
+ const w=d.window,doc=w.document;
+ w.eval(fs.readFileSync('extension/core.js','utf8'));
+ const slider=doc.createElement('input'),toggle=doc.createElement('button'),output=doc.createElement('span');slider.value='280';
+ const card=doc.querySelector('[role=button]');let clicks=0;card.addEventListener('click',()=>clicks++);
+ const chunk=doc.querySelector('[style*="scroll-snap-stop"]');
+ const scroll=doc.createElement('div');scroll.style.cssText='overflow:auto';chunk.replaceWith(scroll);scroll.appendChild(chunk);
+ const before=doc.querySelector('main').innerHTML;
+ const layout=w.IGLikesLayout(doc,{slider,toggle,output});
+ assert.equal(doc.querySelectorAll('[data-iglv-layout="tile"]').length,1);
+ assert.equal(doc.querySelectorAll('[data-iglv-layout="scroll-grid"]').length,1);
+ card.click();assert.equal(clicks,1);
+ toggle.click();assert.equal(doc.querySelectorAll('[data-iglv-layout]').length,0);
+ assert.equal(doc.querySelector('main').innerHTML,before);
+ toggle.click();assert.equal(doc.querySelectorAll('[data-iglv-layout="tile"]').length,1);
+ layout.destroy();assert.equal(doc.querySelector('main').innerHTML,before);
+ assert.equal(doc.querySelector('style'),null);w.close();
+});
